@@ -12,6 +12,11 @@ PATH="$HOME/.linuxbrew/bin:$HOME/.linuxbrew/sbin:$HOME/.homesick/repos/homeshick
 MANPATH=":$HOME/.linuxbrew/share/man:$MANPATH"
 INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH"
 
+if [[ -S "$SSH_AUTH_SOCK" && ! -h "$SSH_AUTH_SOCK" ]]; then
+    ln -sf "$SSH_AUTH_SOCK" ~/.ssh/ssh_auth_sock;
+fi
+export SSH_AUTH_SOCK=~/.ssh/ssh_auth_sock;
+
 # # Autostart workaround for windows
 # fish -l
 # exit
