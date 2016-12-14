@@ -45,5 +45,5 @@ alias la="ls -lah --group-directories-first --color"
 alias tmux0="tmux attach -t0"
 #alias mount-server="sudo mount -o rw,bg,hard,resvport,intr,noac,nfc,tcp 20.4.91.100:/mnt/disk1 /media/server"
 # macOS fix for ls switches
-#alias ls="ls -hG"
-#alias la="ls -lahG"
+alias ls="ls -hG"
+alias la="ls -lahG"
