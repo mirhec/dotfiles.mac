@@ -1,32 +1,4 @@
-# Setup dotfiles on Uberspace or MacOS or Ubuntu for Windows
-
-## Setup for Uberspace
-
-#### STEP 1: Login to your server
-
-#### STEP 2: Clone the dotfiles from these reporitory
-
-```bash
-git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
-~/.homesick/repos/homeshick/bin/homeshick clone mirhec/dotfiles
-source ~/.bashrc
-```
-
-#### STEP 3: Install Linuxbrew and fish
-```bash
-git clone https://github.com/Linuxbrew/brew.git ~/.linuxbrew
-
-# symlinks to gcc in order to make brew install able to compile from source
-ln -s /package/host/localhost/gcc-4.9/bin/gcc ~/.linuxbrew/bin/gcc-4.9
-ln -s /package/host/localhost/gcc-4.9/bin/g++ ~/.linuxbrew/bin/g++-4.9
-
-# install fish with brew
-brew install fish
-```
-
-#### Then log out and log in again to apply the changes
-
-## Setup for MacOS
+# Dotfiles for MacOS
 
 #### STEP 1: Clone the dotfiles from these reporitory
 
@@ -36,7 +8,7 @@ git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshi
 source ~/.bashrc
 ```
 
-#### STEP 2: Install Linuxbrew and fish
+#### STEP 2: Install Homebrew and fish
 ```bash
 # if you haven't installed homebrew yet, do it ...
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -50,28 +22,5 @@ brew install fish
 # check if /usr/local/bin/fish exists in /etc/shells, otherwise add it
 chsh -s /usr/local/bin/fish
 ```
-
-#### Then log out and log in again to apply the changes
-
-## Setup for Ubuntu for Windows
-
-#### STEP 1: Install dependencies
- - You should set another font for your console as described [here](http://www.hanselman.com/blog/UsingConsolasAsTheWindowsConsoleFont.aspx)
-```bash
-sudo apt-add-repository ppa:fish-shell/release-2
-sudo apt-get update
-sudo apt-get install fish vim -y
-```
-
-#### STEP 2: Clone the dotfiles from these reporitory
-
-```bash
-git clone https://github.com/andsens/homeshick.git $HOME/.homesick/repos/homeshick
-~/.homesick/repos/homeshick/bin/homeshick clone mirhec/dotfiles
-source ~/.bashrc
-```
-
-#### STEP 3: Set fish as default shell
- - Just uncomment the last two lines of `.bashrc`
 
 #### Then log out and log in again to apply the changes
