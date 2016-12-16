@@ -23,4 +23,11 @@ brew install fish
 chsh -s /usr/local/bin/fish
 ```
 
+#### STEP 4: Add your ssh key to the keychain
+You need to do this once, otherwise tmux will ask you every time you connect via ssh for your passphrase:
+```bash
+ssh-add -K ~/.ssh/id_rsa
+   Enter your passphrase: ...
+```
+
 #### Then log out and log in again to apply the changes
