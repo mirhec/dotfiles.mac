@@ -1,154 +1,118 @@
 #!/bin/bash
-#
-# cron job calls this script periodically
-# e.g. backup every 3 hours from disk1 to disk2
-#             every day from disk1 to disk3
-#             every 3 days from disk1 to disk4
-#
-# backup process:
-# 1. mount destination disk
-# 2. start backup
-# 3. when backup finished unmount destination disk
-# 4. spin down destination disk
-#
-# add a cron job which runs this script periodically
-# a sample cron job could look like this:
-#
-# # call backup script (every 3 hours)
-# 0 */3 * * * /path/to/backup_script disk2
-#
 
-BACKUP_DEST_DEV="${1}"
-SRC_DISK="disk1"
-BASE_MOUNT_DIR="/mnt/"
-SRC_DIR="."
-DEST_DIR="."
-RUN_AS_USER="manu"
-LOG_FILE="/var/log/backup_script.log"
+################################################################
+# Main
 
-function log() {
-    STATE="$1"
-    MESSAGE="$2"
-    if [ ! -z "$LOG_FILE" ]; then
-        echo "$(date "+%d.%m.%Y %R:%S") - ${STATE}: ${MESSAGE}" | tee -a "$LOG_FILE"
-    else
-        echo "$(date "+%d.%m.%Y %R:%S") - ${STATE}: ${MESSAGE}"
-    fi
-    # the if statement can be replaced with this line but I avoided it because of readability
-    # echo "$(date "+%d.%m.%Y %R:%S") - ${STATE}: ${MESSAGE}" | ([ ! -z "$LOG_FILE" ] && tee -a "$LOG_FILE" || cat)
+# if ! [ -e "$2" ]; then
+#         echo "$2 not found" >&2
+#         exit 1
+# fi
+# if ! [ -d "$2" ]; then
+#         echo "$2 not a directory" >&2
+#         exit 1
+# fi
+
+################################################################
+# Variabeln
+TIMESTAMP="`date +%Y-%m-%d_%H-%M-%S`"
+# HOSTNAME="`uname -n`"
+
+RSYNC="rsync"
+RSYNC_PARAMETER="-avhzP --delete"
+
+MODE="$1"
+SRC="$2"
+BACKUPDIR="$3"
+
+# CONFIGFILE="`dirname $0`/backup.conf"
+# LOGFILE=backup.log
+
+################################################################
+# Funktionen
+usage ()
+{
+        echo "Usage: $0 ( daily | weekly | monthly | yearly ) [source-directory] [backup-directory] [rsync-args...]" >&2
 }
 
-function exit() {
-    EXIT_STATUS="$1"
-    if [ "$EXIT_STATUS" == "0" ]; then
-        log "SUCCESS" "#################### FINISHED SUCCESSFULLY ####################"
-    else
-        log "ERROR" "#################### EXITED WITH ERROR ####################"
-    fi
-    if [ ! -z "$LOG_FILE" ]; then
-        echo -e "\n\n\n" >> "$LOG_FILE"
-    fi
-    command exit "$EXIT_STATUS"
+################################################################
+# Backup-Funktionen
+daily ()
+{
+        rm -rf $BACKUPDIR/daily_7
+        mv $BACKUPDIR/daily_6 $BACKUPDIR/daily_7
+        mv $BACKUPDIR/daily_5 $BACKUPDIR/daily_6
+        mv $BACKUPDIR/daily_4 $BACKUPDIR/daily_5
+        mv $BACKUPDIR/daily_3 $BACKUPDIR/daily_4
+        mv $BACKUPDIR/daily_2 $BACKUPDIR/daily_3
+        mv $BACKUPDIR/daily_1 $BACKUPDIR/daily_2
+        mkdir $BACKUPDIR/daily_1
+        gcp -al $BACKUPDIR/current/* $BACKUPDIR/daily_1
 }
 
-function mount() {
-    MOUNT_POINT="$1"
-    if mountpoint "${MOUNT_POINT}" > /dev/null 2>&1 || /bin/false; then
-        log "SUCCESS" "${MOUNT_POINT} is already mounted."
-    else
-        command mount "${MOUNT_POINT}"
-        if mountpoint "${MOUNT_POINT}" > /dev/null 2>&1 || /bin/false; then
-            log "SUCCESS" "Mounted ${MOUNT_POINT} successfully."
-        else
-            log "ERROR" "Failed to mount ${MOUNT_POINT}."
-            exit 1
-        fi
-    fi
+weekly ()
+{
+        rm -rf $BACKUPDIR/weekly_4
+        mv $BACKUPDIR/weekly_3 $BACKUPDIR/weekly_4
+        mv $BACKUPDIR/weekly_2 $BACKUPDIR/weekly_3
+        mv $BACKUPDIR/weekly_1 $BACKUPDIR/weekly_2
+        mkdir $BACKUPDIR/weekly_1
+        gcp -al $BACKUPDIR/current/* $BACKUPDIR/weekly_1
 }
 
-function unmount_and_spindown() {
-    UMOUNT_POINT="$1"
-    SPINDOWN_DEV="$2"
-
-    # try to unmount destination device
-    if umount "$UMOUNT_POINT" > /dev/null 2>&1 || /bin/false; then
-        log "INFO" "Backup device unmounted."
-    else
-        log "WARNING" "Backup device couldn't be unmounted."
-    fi
-    
-    # try to spin down the hard drive
-    if /sbin/hdparm -Y "$SPINDOWN_DEV" > /dev/null 2>&1 || /bin/false; then
-        log "INFO" "Backup device spinned down."
-    else
-        log "WARNING" "Backup device couldn't be spinned down."
-    fi
+monthly ()
+{
+        rm -rf $BACKUPDIR/monthly_12
+        mv $BACKUPDIR/monthly_11 $BACKUPDIR/monthly_12
+        mv $BACKUPDIR/monthly_10 $BACKUPDIR/monthly_11
+        mv $BACKUPDIR/monthly_9 $BACKUPDIR/monthly_10
+        mv $BACKUPDIR/monthly_8 $BACKUPDIR/monthly_9
+        mv $BACKUPDIR/monthly_7 $BACKUPDIR/monthly_8
+        mv $BACKUPDIR/monthly_6 $BACKUPDIR/monthly_7
+        mv $BACKUPDIR/monthly_5 $BACKUPDIR/monthly_6
+        mv $BACKUPDIR/monthly_4 $BACKUPDIR/monthly_5
+        mv $BACKUPDIR/monthly_3 $BACKUPDIR/monthly_4
+        mv $BACKUPDIR/monthly_2 $BACKUPDIR/monthly_3
+        mv $BACKUPDIR/monthly_1 $BACKUPDIR/monthly_2
+        mkdir $BACKUPDIR/monthly_1
+        gcp -al $BACKUPDIR/current/* $BACKUPDIR/monthly_1
 }
 
-function backup() {
-    log "INFO" "Starting backup process from ${SRC_PATH} to ${DEST_PATH}..."
-    su -s /bin/bash -c "rsync -ayhEAX --progress --delete-after --inplace --compress-level=0 --log-file=\"$LOG_FILE\" \"$SRC_PATH\" \"$DEST_PATH\"" $RUN_AS_USER
+yearly ()
+{
+        rm -rf $BACKUPDIR/yearly_5
+        mv $BACKUPDIR/yearly_4 $BACKUPDIR/yearly_5
+        mv $BACKUPDIR/yearly_3 $BACKUPDIR/yearly_4
+        mv $BACKUPDIR/yearly_2 $BACKUPDIR/yearly_3
+        mv $BACKUPDIR/yearly_1 $BACKUPDIR/yearly_2
+        mkdir $BACKUPDIR/yearly_1
+        cp -al $BACKUPDIR/current/* $BACKUPDIR/yearly_1
 }
 
-function main() {
-    # initialize variables
-    DEST_PATH="${BASE_MOUNT_DIR}${DEST_DISK}/${DEST_DIR}"
-    SRC_PATH="${BASE_MOUNT_DIR}${SRC_DISK}/${SRC_DIR}"
-
-    # check if logfile exist, if not create it
-    if [ ! -e "$LOG_FILE" ]; then
-        touch "$LOG_FILE" > /dev/null 2>&1
-        chown $RUN_AS_USER:$RUN_AS_USER "$LOG_FILE" > /dev/null 2>&1
-    fi
-
-    # check if source device is mounted
-    if ! mountpoint "${BASE_MOUNT_DIR}${SRC_DISK}" > /dev/null 2>&1 || /bin/false; then
-        log "ERROR" "Backup source device is not mounted!"
+################################################################
+# Main
+if [ "$#" -lt 3 ]; then
+        usage
         exit 1
-    fi
+fi
 
-    # check if source directory is readable
-    if [ ! -r  "$SRC_PATH" ]; then
-        log "ERROR" "Unable to read source directory."
-        exit 1
-    fi
-
-    # mount destination device
-    mount "${BASE_MOUNT_DIR}${DEST_DISK}"
-
-    # check if target directory exist and is writable
-    if [ ! -w  "$DEST_PATH" ]; then
-        log "ERROR" "Unable to write to target dir."
-        exit 1
-    fi
-
-    # start the backup process
-    backup
-
-    # Unmount the drive so it does not accidentally get damaged or wiped
-    unmount_and_spindown "${BASE_MOUNT_DIR}${DEST_DISK}" "$DEST_DEV"
-
-    # exit successfully
-    exit 0
-}
-
-case "$BACKUP_DEST_DEV" in
-    "disk2")
-        DEST_DISK="disk2"
-        DEST_DEV="/dev/sdb"
+echo "$TIMESTAMP Backup $1 start" >&2
+case $MODE in
+  daily|weekly|monthly|yearly)
+    $MODE >&2
     ;;
-    "disk3")
-        DEST_DISK="disk3"
-        DEST_DEV="/dev/sdc"
+  *)
+    usage
+    exit 1
     ;;
-    "disk4")
-        DEST_DISK="disk4"
-        DEST_DEV="/dev/sdd"
-    ;;
-    *)
-        echo "${BACKUP_DEST_DEV} is no valid parameter."
-        echo "Usage: `basename ${0}` backup-destination-disk"
-        exit 1
 esac
 
-main
+echo "Hardlinks were copied for $MODE backup. Now create backup ..."
+
+# Dateien synchronisieren
+mkdir -p $BACKUPDIR/current
+shift 3
+$RSYNC $RSYNC_PARAMETER $SRC $BACKUPDIR/current $@
+
+echo "$TIMESTAMP Backup $MODE done" >&2
+
+# EOF
