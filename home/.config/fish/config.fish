@@ -40,8 +40,8 @@ end
 
 # ALIASES
 alias ack="command ack --pager='less -R'"
-alias ls="ls -h --group-directories-first --color"
-alias la="ls -lah --group-directories-first --color"
+alias ls="ls -hG"
+alias la="ls -lahG"
 alias tmux0="tmux attach -t0"
 #alias mount-server="sudo mount -o rw,bg,hard,resvport,intr,noac,nfc,tcp 20.4.91.100:/mnt/disk1 /media/server"
 # macOS fix for ls switches
